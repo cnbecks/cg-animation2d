@@ -37,8 +37,8 @@ class Renderer {
           origin_y: 300,
           num_sides: 6,
           growth_rate: 2,
-          scaling_magnitude_x: 1.2,
-          scaling_magnitude_y: 1.2,
+          scaling_magnitude_x: 1.6,
+          scaling_magnitude_y: 1.6,
           current_scale_x: 1,
           current_scale_y: 1,
           color: [255, 40, 100, 255],
@@ -65,8 +65,8 @@ class Renderer {
           origin_y: 350,
           num_sides: 9,
           growth_rate: 4,
-          scaling_magnitude_x: 3,
-          scaling_magnitude_y: 3,
+          scaling_magnitude_x: 2,
+          scaling_magnitude_y: 6,
           current_scale_x: 1,
           current_scale_y: 1,
           color: [255, 120, 160, 255],
@@ -215,61 +215,105 @@ class Renderer {
     );
 
     // SLIDE 2
-
-    // for all models in slide 2...
     for (let i = 0; i < this.models.slide2.length; i++) {
-      // reference model
+      // create reference to current model cuz I can
+      // access its properties easier this way
       let model = this.models.slide2[i];
 
-      let scaleX =
-        1 + model.scaling_magnitude_x * (delta_time / 1000 / model.growth_rate);
-      let scaleY =
-        1 + model.scaling_magnitude_y * (delta_time / 1000 / model.growth_rate);
+      // calculate how much time has passed (in seconds)
+      let timePassed = time / 1000;
 
-      // update current scale
-      model.current_scale_x *= scaleX;
-      model.current_scale_y *= scaleY;
+      // modulus by the model's growth rate * 2 because
+      // if the growth rate is 4 for example, it should
+      // take 8 seconds to complete its oscillation of
+      // size between its original scale and magnitudes
 
-      // shift to origin, scale, then shift back to original position
+      // we basically only care about how much time has
+      // passed within this particular period of growth
+      // and shrinkage (which lasts 2*growth_rate seconds)
+      // because it take growth_rate seconds to grow to max
+      // size and growth_rate seconds to shrink to base size
+      timePassed = timePassed % (model.growth_rate * 2);
+
+      // consider the current period of growth or shrinkage
+      // (either of which last growth_rate number of secs)
+      // and determine what fraction of that period has
+      // already happened by this point
+      let scalingAlreadyCompleted =
+        (timePassed % model.growth_rate) / model.growth_rate;
+
+      // create 2 empty variables which will hold the newly
+      // calculated scale values in x and y direction
+      let newScaleX;
+      let newScaleY;
+
+      // if the amount of time passed is less than the amount
+      // of time it should take for the polygon to grow from
+      // its base size to its max size, then it is currently
+      // in the process of growing still, so handle this case...
+      if (timePassed < model.growth_rate) {
+        // to calculate the new scale (for the upcoming frame) in
+        // either the x or y direction, begin with that direction's
+        // original scale, which is always 1, and add to that the
+        // amount of growth that has already taken place
+        newScaleX = 1;
+        newScaleX += (model.scaling_magnitude_x - 1) * scalingAlreadyCompleted;
+        newScaleY = 1;
+        newScaleY += (model.scaling_magnitude_y - 1) * scalingAlreadyCompleted;
+      } else {
+        // otherwise, the polygon is in the process of shrinking,
+        // so handle this case...
+
+        // to calculate the new scale (for the upcoming frame) in
+        // either the x or y direction, begin with that direction's
+        // scaling magnitude (the maximum size) and remove from
+        // that the amount of shrinkage that has already taken place
+        newScaleX = model.scaling_magnitude_x;
+        newScaleX -= (model.scaling_magnitude_x - 1) * scalingAlreadyCompleted;
+        newScaleY = model.scaling_magnitude_y;
+        newScaleY -= (model.scaling_magnitude_y - 1) * scalingAlreadyCompleted;
+      }
+
+      // create matrix transformation for translating
+      // the polygon back to the origin
       let translateToOrigin = new Matrix(3, 3);
       CG.mat3x3Translate(
         translateToOrigin,
         -1 * model.origin_x,
         -1 * model.origin_y
       );
+
+      // create matrix transform for scaling
+      // note that I calculate the scale factor
+      // here by taking the ratio of the desired
+      // scale amount in either direction versus
+      // the current scale amount in that direction.
       let scaleAtOrigin = new Matrix(3, 3);
-      CG.mat3x3Scale(scaleAtOrigin, scaleX, scaleY);
+      CG.mat3x3Scale(
+        scaleAtOrigin,
+        newScaleX / model.current_scale_x,
+        newScaleY / model.current_scale_y
+      );
+
+      // we still have to translate the polygon
+      // back to its original spot after we
+      // scale, and that's what this matrix is for
       let translateBack = new Matrix(3, 3);
       CG.mat3x3Translate(translateBack, model.origin_x, model.origin_y);
 
-      // mult to get final transform
+      // combine the transformations into a single matrix
       let combinedMatrix = Matrix.multiply([
         translateBack,
         scaleAtOrigin,
         translateToOrigin,
       ]);
 
-      // update the model's transform matrix
-      this.models.slide2[i].transform = combinedMatrix;
+      // update our model's transform matrix
+      model.transform = combinedMatrix;
 
-      // HANDLE DIRECTION REVERSE
-
-      if (model.current_scale_x >= model.scaling_magnitude_x) {
-        console.log("reversing x");
-        model.scaling_magnitude_x = -1 * Math.abs(model.scaling_magnitude_x);
-      }
-      if (model.current_scale_x <= 1) {
-        console.log("reversing x back");
-        model.scaling_magnitude_x = Math.abs(model.scaling_magnitude_x);
-      }
-      if (model.current_scale_y >= model.scaling_magnitude_y) {
-        console.log("reversing y");
-        model.scaling_magnitude_y = -1 * Math.abs(model.scaling_magnitude_y);
-      }
-      if (model.current_scale_y <= 1) {
-        console.log("reversing y back");
-        model.scaling_magnitude_y = Math.abs(model.scaling_magnitude_y);
-      }
+      // update current scales for next frame
+      model.current_scale_x = newScaleX;
+      model.current_scale_y = newScaleY;
     }
   }
 
