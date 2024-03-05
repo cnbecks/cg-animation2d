@@ -15,49 +15,134 @@ class Renderer {
     this.fps = fps;
     this.start_time = null;
     this.prev_time = null;
-
-    // had to add two more properties
-    // this is circle velocity x and y,
-    // both set to 100 px/sec
-    this.circle_vx = 500;
-    this.circle_vy = 500;
-
     this.models = {
       slide0: [
-        // example model (diamond) -> should be replaced with actual model
         {
           vertices: [],
           transform: new Matrix(3, 3),
+          radius: 50,
+          origin: 400,
+          num_sides: 30,
+          vx: 500,
+          vy: 500,
         },
       ],
       slide1: [],
-      slide2: [],
+      slide2: [
+        {
+          vertices: [],
+          transform: new Matrix(3, 3),
+          radius: 40,
+          origin_x: 450,
+          origin_y: 300,
+          num_sides: 6,
+          growth_rate: 2,
+          scaling_magnitude_x: 1.2,
+          scaling_magnitude_y: 1.2,
+          current_scale_x: 1,
+          current_scale_y: 1,
+          color: [255, 40, 100, 255],
+        },
+        {
+          vertices: [],
+          transform: new Matrix(3, 3),
+          radius: 60,
+          origin_x: 150,
+          origin_y: 200,
+          num_sides: 5,
+          growth_rate: 3,
+          scaling_magnitude_x: 1.5,
+          scaling_magnitude_y: 2,
+          current_scale_x: 1,
+          current_scale_y: 1,
+          color: [30, 100, 240, 255],
+        },
+        {
+          vertices: [],
+          transform: new Matrix(3, 3),
+          radius: 100,
+          origin_x: 650,
+          origin_y: 350,
+          num_sides: 9,
+          growth_rate: 4,
+          scaling_magnitude_x: 3,
+          scaling_magnitude_y: 3,
+          current_scale_x: 1,
+          current_scale_y: 1,
+          color: [255, 120, 160, 255],
+        },
+      ],
       slide3: [],
     };
 
-    // define the circle's radius and origin
-    let circ_radius = 50;
-    let circ_origin = 400;
-    let circ_sides = 30;
+    // SLIDE 0 STUFF
 
     // a circle with 30 sides looks pretty good,
     // so I iterate 30 times here defining a new
     // vertex in each iteration
 
-    for (let i = 1; i < circ_sides; i++) {
+    for (let i = 0; i < this.models.slide0[0].num_sides; i++) {
       // calculating the current angle here.
       // basically just making my way around
       // the unit circle by iterating from 0 to
       // 2PI by increments of (2PI / num sides)
-      let currentTheta = 0 + (i / circ_sides) * (2 * Math.PI);
+      let currentTheta = (i / this.models.slide0[0].num_sides) * (2 * Math.PI);
 
       // calculate the new vertex position and
       // push it to the list of vertices in the
       // models.slide0[0] object as a Vector3
       this.models.slide0[0].vertices.push(
         CG.Vector3(
-          circ_origin + circ_radius * Math.cos(currentTheta),
-          circ_origin + circ_radius * Math.sin(currentTheta),
+          this.models.slide0[0].origin +
+            this.models.slide0[0].radius * Math.cos(currentTheta),
+          this.models.slide0[0].origin +
+            this.models.slide0[0].radius * Math.sin(currentTheta),
+          1
+        )
+      );
+    }
+
+    // SLIDE 2 STUFF
+
+    // MODEL 1
+    // create polygon using same method
+    // as i did for circle (above)
+    for (let i = 0; i < this.models.slide2[0].num_sides; i++) {
+      let currentTheta = (i / this.models.slide2[0].num_sides) * (2 * Math.PI);
+      this.models.slide2[0].vertices.push(
+        CG.Vector3(
+          this.models.slide2[0].origin_x +
+            this.models.slide2[0].radius * Math.cos(currentTheta),
+          this.models.slide2[0].origin_y +
+            this.models.slide2[0].radius * Math.sin(currentTheta),
+          1
+        )
+      );
+    }
+
+    // MODEL 2
+    for (let i = 0; i < this.models.slide2[1].num_sides; i++) {
+      let currentTheta = (i / this.models.slide2[1].num_sides) * (2 * Math.PI);
+      this.models.slide2[1].vertices.push(
+        CG.Vector3(
+          this.models.slide2[1].origin_x +
+            this.models.slide2[1].radius * Math.cos(currentTheta),
+          this.models.slide2[1].origin_y +
+            this.models.slide2[1].radius * Math.sin(currentTheta),
+          1
+        )
+      );
+    }
+
+    // MODEL 3
+    for (let i = 0; i < this.models.slide2[2].num_sides; i++) {
+      let currentTheta = (i / this.models.slide2[2].num_sides) * (2 * Math.PI);
+      this.models.slide2[2].vertices.push(
+        CG.Vector3(
+          this.models.slide2[2].origin_x +
+            this.models.slide2[2].radius * Math.cos(currentTheta),
+          this.models.slide2[2].origin_y +
+            this.models.slide2[2].radius * Math.sin(currentTheta),
           1
         )
       );
@@ -116,6 +201,7 @@ class Renderer {
   updateTransforms(time, delta_time) {
     // TODO: update any transformations needed for animation
 
+    // SLIDE 0
     // update the model's transform matrix.
     // this method just overwrites whatever matrix
     // used to be referenced there, with a new one
@@ -124,9 +210,67 @@ class Renderer {
     // otherwise it would move too fast
     CG.mat3x3Translate(
       this.models.slide0[0].transform,
-      (this.circle_vx * delta_time) / 1000,
-      (this.circle_vy * delta_time) / 1000
+      (this.models.slide0[0].vx * delta_time) / 1000,
+      (this.models.slide0[0].vy * delta_time) / 1000
     );
+
+    // SLIDE 2
+
+    // for all models in slide 2...
+    for (let i = 0; i < this.models.slide2.length; i++) {
+      // reference model
+      let model = this.models.slide2[i];
+
+      let scaleX =
+        1 + model.scaling_magnitude_x * (delta_time / 1000 / model.growth_rate);
+      let scaleY =
+        1 + model.scaling_magnitude_y * (delta_time / 1000 / model.growth_rate);
+
+      // update current scale
+      model.current_scale_x *= scaleX;
+      model.current_scale_y *= scaleY;
+
+      // shift to origin, scale, then shift back to original position
+      let translateToOrigin = new Matrix(3, 3);
+      CG.mat3x3Translate(
+        translateToOrigin,
+        -1 * model.origin_x,
+        -1 * model.origin_y
+      );
+      let scaleAtOrigin = new Matrix(3, 3);
+      CG.mat3x3Scale(scaleAtOrigin, scaleX, scaleY);
+      let translateBack = new Matrix(3, 3);
+      CG.mat3x3Translate(translateBack, model.origin_x, model.origin_y);
+
+      // mult to get final transform
+      let combinedMatrix = Matrix.multiply([
+        translateBack,
+        scaleAtOrigin,
+        translateToOrigin,
+      ]);
+
+      // update the model's transform matrix
+      this.models.slide2[i].transform = combinedMatrix;
+
+      // HANDLE DIRECTION REVERSE
+
+      if (model.current_scale_x >= model.scaling_magnitude_x) {
+        console.log("reversing x");
+        model.scaling_magnitude_x = -1 * Math.abs(model.scaling_magnitude_x);
+      }
+      if (model.current_scale_x <= 1) {
+        console.log("reversing x back");
+        model.scaling_magnitude_x = Math.abs(model.scaling_magnitude_x);
+      }
+      if (model.current_scale_y >= model.scaling_magnitude_y) {
+        console.log("reversing y");
+        model.scaling_magnitude_y = -1 * Math.abs(model.scaling_magnitude_y);
+      }
+      if (model.current_scale_y <= 1) {
+        console.log("reversing y back");
+        model.scaling_magnitude_y = Math.abs(model.scaling_magnitude_y);
+      }
+    }
   }
 
   //
@@ -151,7 +295,6 @@ class Renderer {
 
   //
   drawSlide0() {
-    console.log("drawing slide 0");
     // TODO: draw bouncing ball (circle that changes direction whenever it hits an edge)
 
     // define the color
@@ -188,7 +331,7 @@ class Renderer {
       // is at the left of the canvas, change the
       // x velocity of the circle to be positive
       if (cartesianX <= 0) {
-        this.circle_vx = Math.abs(this.circle_vx);
+        this.models.slide0[0].vx = Math.abs(this.models.slide0[0].vx);
         break;
       }
 
@@ -196,7 +339,7 @@ class Renderer {
       // is at the right of the canvas, change the
       // x velocity of the circle to be negative
       if (cartesianX >= this.canvas.width) {
-        this.circle_vx = Math.abs(this.circle_vx) * -1;
+        this.models.slide0[0].vx = Math.abs(this.models.slide0[0].vx) * -1;
         break;
       }
 
@@ -204,7 +347,7 @@ class Renderer {
       // is at the bottom of the canvas, change the
       // y velocity of the circle to be positive
       if (cartesianY <= 0) {
-        this.circle_vy = Math.abs(this.circle_vy);
+        this.models.slide0[0].vy = Math.abs(this.models.slide0[0].vy);
         break;
       }
 
@@ -212,7 +355,7 @@ class Renderer {
       // is at the top of the canvas, change the
       // y velocity of the circle to be negative
       if (cartesianY >= this.canvas.height) {
-        this.circle_vy = Math.abs(this.circle_vy) * -1;
+        this.models.slide0[0].vy = Math.abs(this.models.slide0[0].vy) * -1;
         break;
       }
 
@@ -233,6 +376,23 @@ class Renderer {
     // TODO: draw at least 2 polygons grow and shrink about their own centers
     //   - have each polygon grow / shrink different sizes
     //   - try at least 1 polygon that grows / shrinks non-uniformly in the x and y directions
+
+    // for each model in slide 2...
+    for (let i = 0; i < this.models.slide2.length; i++) {
+      // draw the polygon
+      this.drawConvexPolygon(
+        this.models.slide2[i].vertices,
+        this.models.slide2[i].color
+      );
+
+      // apply the scaling transformation to the polygon
+      for (let j = 0; j < this.models.slide2[i].vertices.length; j++) {
+        this.models.slide2[i].vertices[j] = Matrix.multiply([
+          this.models.slide2[i].transform,
+          this.models.slide2[i].vertices[j],
+        ]);
+      }
+    }
   }
 
   //
