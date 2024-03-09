@@ -27,7 +27,48 @@ class Renderer {
           vy: 500,
         },
       ],
-      slide1: [],
+      slide1: [
+        { // face of the clock
+          vertices: [ // based about the origin
+            CG.Vector3(-260,0,1),
+            CG.Vector3(-195,195,1),
+            CG.Vector3(0,260,1),
+            CG.Vector3(195,195,1),
+            CG.Vector3(260,0,1),
+            CG.Vector3(195,-195,1),
+            CG.Vector3(0,-260,1),
+            CG.Vector3(-195,-195,1),
+          ],
+          rotation: new Matrix(3, 3),
+          translation: new Matrix(3, 3), // to be set in drawSlide1
+          velocity: 0,                   // to be set in drawSlide1
+          color: new Matrix(1,4)         // to be set in drawSlide1
+        },
+        { // long hand of the clock
+          vertices: [ // based about the orgin
+            CG.Vector3(-15,0,1),
+            CG.Vector3(0,240,1),
+            CG.Vector3(15,0,1),
+            CG.Vector3(0,-75,1)
+          ],
+          rotation: new Matrix(3, 3),
+          translation: new Matrix(3, 3), // to be set in drawSlide1
+          velocity: 0,                   // to be set in drawSlide1
+          color: new Matrix(1,4)         // to be set in drawSlide1
+        },
+        { // short hand of the clock
+          vertices: [ // based about the orgin
+            CG.Vector3(-15,0,1),
+            CG.Vector3(0,150,1),
+            CG.Vector3(15,0,1),
+            CG.Vector3(0,-75,1),
+          ],
+          rotation: new Matrix(3, 3),
+          translation: new Matrix(3, 3), // to be set in drawSlide1
+          velocity: 0,                   // to be set in drawSlide1
+          color: new Matrix(1,4)         // to be set in drawSlide1
+        }
+      ],
       slide2: [
         {
           vertices: [],
@@ -208,11 +249,22 @@ class Renderer {
     // of those homogeneous matrices. keep in mind
     // that delta time is in ms, so I div by 1k here
     // otherwise it would move too fast
-    CG.mat3x3Translate(
-      this.models.slide0[0].transform,
-      (this.models.slide0[0].vx * delta_time) / 1000,
-      (this.models.slide0[0].vy * delta_time) / 1000
-    );
+    CG.mat3x3Translate( this.models.slide0[0].transform,
+                       (this.models.slide0[0].vx * delta_time) / 1000,
+                       (this.models.slide0[0].vy * delta_time) / 1000 );
+
+    //--------------------- SLIDE ONE ---------------------//
+    let num_models = this.models.slide1.length;
+    for ( let model_idx = 0; model_idx < num_models; model_idx++ ) {
+        // make referencing each model easier
+        let current_model = this.models.slide1[model_idx];
+
+        let theta = ( current_model.velocity / 1000.0 ) * time; // time is in milliseconds
+        if ( theta >= (2*Math.PI) ) {
+            theta = theta - (2*Math.PI); // resets theta after a full circle is complete
+        }
+        CG.mat3x3Rotate( current_model.rotation, theta );
+    }
 
     // SLIDE 2
     for (let i = 0; i < this.models.slide2.length; i++) {
@@ -339,8 +391,6 @@ class Renderer {
 
   //
   drawSlide0() {
-    // TODO: draw bouncing ball (circle that changes direction whenever it hits an edge)
-
     // define the color
     let purp = [150, 100, 230, 255];
 
@@ -349,12 +399,9 @@ class Renderer {
 
     // iterate over every vertex in the circle
     for (let i = 0; i < this.models.slide0[0].vertices.length; i++) {
-      // apply the translation tranformation by
-      // multiplying the Vector3 w/ the transform
-      this.models.slide0[0].vertices[i] = Matrix.multiply([
-        this.models.slide0[0].transform,
-        this.models.slide0[0].vertices[i],
-      ]);
+        // apply the translation tranformation by
+        // multiplying the Vector3 w/ the transform
+        this.models.slide0[0].vertices[i] = Matrix.multiply( [this.models.slide0[0].transform, this.models.slide0[0].vertices[i]] );
     }
 
     // all code below just handles bouncing
@@ -409,13 +456,35 @@ class Renderer {
     }
   }
 
-  //
   drawSlide1() {
-    // TODO: draw at least 3 polygons that spin about their own centers
     //   - have each polygon spin at a different speed / direction
+    let velocity_arr = [ (Math.PI / 3), (-1 * Math.PI), (-1 * Math.PI / 12) ];
+    let color_arr    = [ [209, 164, 245, 255], [214, 11, 177, 255], [232, 63, 209, 255] ]; // purple, pink, light pink
+    let location_arr = [ [400, 300], [400, 300], [400, 300] ];
+
+    let num_models = this.models.slide1.length;
+    for ( let model_idx = 0; model_idx < num_models; model_idx++ ) {
+        // make referencing each model easier
+        let current_model = this.models.slide1[model_idx];
+
+        // initialize custom parameters velocity, color, and location on slide (translate)
+        current_model.velocity = velocity_arr[model_idx];
+        current_model.color = color_arr[model_idx];
+        CG.mat3x3Translate( current_model.translation, location_arr[model_idx][0], location_arr[model_idx][1] );
+    
+        // perform rotation, then translation from model at origin
+        let updated_vertices = [];
+        let num_edges = current_model.vertices.length;
+        for ( let edge = 0; edge < num_edges; edge++ ) {
+          let current_vertice = current_model.vertices[edge];
+          let result = Matrix.multiply( [ current_model.translation, current_model.rotation, current_vertice ] );
+
+          updated_vertices.push(result);
+        }
+        this.drawConvexPolygon(updated_vertices, current_model.color);
+    }
   }
 
-  //
   drawSlide2() {
     // TODO: draw at least 2 polygons grow and shrink about their own centers
     //   - have each polygon grow / shrink different sizes
@@ -439,7 +508,6 @@ class Renderer {
     }
   }
 
-  //
   drawSlide3() {
     // TODO: get creative!
     //   - animation should involve all three basic transformation types
