@@ -24,7 +24,7 @@ class Renderer {
           origin: 400,
           num_sides: 30,
           vx: 500,
-          vy: 500,
+          vy: 230,
         },
       ],
       slide1: [
@@ -243,6 +243,59 @@ class Renderer {
     // TODO: update any transformations needed for animation
 
     // SLIDE 0
+    
+    // all code below just handles bouncing
+    // had to do some weird stuff here to
+    // make it work without glitches
+
+    // iterate over all vertices
+    for (let i = 0; i < this.models.slide0[0].vertices.length; i++) {
+      // create reference to vector3 at index i
+      let vector = this.models.slide0[0].vertices[i];
+
+      // calculate its cartesian coordinates using
+      // the homogeneous formula we saw in class
+      let cartesianX = vector.values[0] / vector.values[2];
+      let cartesianY = vector.values[1] / vector.values[2];
+
+      // if the x coord of what should be the next
+      // frame's location for this particular vector
+      // is at the left of the canvas, change the
+      // x velocity of the circle to be positive
+      if (cartesianX + (this.models.slide0[0].vx * delta_time / 1000) <= 0) {
+        this.models.slide0[0].vx = Math.abs(this.models.slide0[0].vx);
+      }
+
+      // if the y coord of what should be the next
+      // frame's location for this particular vector
+      // is at the right of the canvas, change the
+      // x velocity of the circle to be negative
+      else if (cartesianX + (this.models.slide0[0].vx * delta_time / 1000) >= this.canvas.width) {
+        this.models.slide0[0].vx = Math.abs(this.models.slide0[0].vx) * -1;
+      }
+
+      // if the y coord of what should be the next
+      // frame's location for this particular vector
+      // is at the bottom of the canvas, change the
+      // y velocity of the circle to be positive
+      if (cartesianY + (this.models.slide0[0].vy * delta_time / 1000) <= 0) {
+        this.models.slide0[0].vy = Math.abs(this.models.slide0[0].vy);
+      }
+
+      // if the y coord of what should be the next
+      // frame's location for this particular vector
+      // is at the top of the canvas, change the
+      // y velocity of the circle to be negative
+      else if (cartesianY + (this.models.slide0[0].vy * delta_time / 1000) >= this.canvas.height) {
+        this.models.slide0[0].vy = Math.abs(this.models.slide0[0].vy) * -1;
+      }
+
+      // NOTE: I had to use the Math.abs stuff cause
+      // sometimes the ball would get stuck on an edge
+      // toggling back and forth between pos and neg
+    }
+
+
     // update the model's transform matrix.
     // this method just overwrites whatever matrix
     // used to be referenced there, with a new one
@@ -402,57 +455,6 @@ class Renderer {
         // apply the translation tranformation by
         // multiplying the Vector3 w/ the transform
         this.models.slide0[0].vertices[i] = Matrix.multiply( [this.models.slide0[0].transform, this.models.slide0[0].vertices[i]] );
-    }
-
-    // all code below just handles bouncing
-    // had to do some weird stuff here to
-    // make it work without glitches
-
-    // iterate over all vertices
-    for (let i = 0; i < this.models.slide0[0].vertices.length; i++) {
-      // create reference to vector3 at index i
-      let vector = this.models.slide0[0].vertices[i];
-
-      // calculate its cartesian coordinates using
-      // the homogeneous formula we saw in class
-      let cartesianX = vector.values[0] / vector.values[2];
-      let cartesianY = vector.values[1] / vector.values[2];
-
-      // if the x coord of this particular vector3
-      // is at the left of the canvas, change the
-      // x velocity of the circle to be positive
-      if (cartesianX <= 0) {
-        this.models.slide0[0].vx = Math.abs(this.models.slide0[0].vx);
-        break;
-      }
-
-      // if the x coord of this particular vector3
-      // is at the right of the canvas, change the
-      // x velocity of the circle to be negative
-      if (cartesianX >= this.canvas.width) {
-        this.models.slide0[0].vx = Math.abs(this.models.slide0[0].vx) * -1;
-        break;
-      }
-
-      // if the y coord of this particular vector3
-      // is at the bottom of the canvas, change the
-      // y velocity of the circle to be positive
-      if (cartesianY <= 0) {
-        this.models.slide0[0].vy = Math.abs(this.models.slide0[0].vy);
-        break;
-      }
-
-      // if the y coord of this particular vector3
-      // is at the top of the canvas, change the
-      // y velocity of the circle to be negative
-      if (cartesianY >= this.canvas.height) {
-        this.models.slide0[0].vy = Math.abs(this.models.slide0[0].vy) * -1;
-        break;
-      }
-
-      // NOTE: I had to use the Math.abs stuff cause
-      // sometimes the ball would get stuck on an edge
-      // toggling back and forth between pos and neg
     }
   }
 
