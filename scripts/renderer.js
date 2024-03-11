@@ -1,6 +1,5 @@
 import * as CG from "./transforms.js";
 import { Matrix } from "./matrix.js";
-
 class Renderer {
   // canvas:              object ({id: __, width: __, height: __})
   // limit_fps_flag:      bool
@@ -25,7 +24,7 @@ class Renderer {
           num_sides: 30,
           vx: 500,
           vy: 230,
-        },
+        }
       ],
       slide1: [
         { // face of the clock
@@ -114,6 +113,126 @@ class Renderer {
         },
       ],
       slide3: [],
+      slide3: [
+        { // ONE
+          vertices: [],
+          transform: new Matrix(3, 3),
+          radius: 200,
+          origin: 200,
+          num_sides: 30,
+          vx: -100,
+          vy: 70,
+          color: new Matrix(1, 4)
+        },
+        { // TWO
+          vertices: [],
+          transform: new Matrix(3, 3),
+          radius: 200,
+          origin: 200,
+          num_sides: 30,
+          vx: 130,
+          vy: -80,
+          color: new Matrix(1, 4)
+        },
+        { // THREE
+          vertices: [],
+          transform: new Matrix(3, 3),
+          radius: 200,
+          origin: 400,
+          num_sides: 30,
+          vx: 80,
+          vy: -190,
+          color: new Matrix(1, 4)
+        },
+        { // FOUR
+          vertices: [],
+          transform: new Matrix(3, 3),
+          radius: 150,
+          origin: 300,
+          num_sides: 30,
+          vx: 100,
+          vy: 140,
+          color: new Matrix(1, 4)
+        },
+        { // FIVE
+          vertices: [],
+          transform: new Matrix(3, 3),
+          radius: 150,
+          origin: 250,
+          num_sides: 30,
+          vx: -100,
+          vy: 110,
+          color: new Matrix(1, 4)
+        },
+        { // SIX
+          vertices: [],
+          transform: new Matrix(3, 3),
+          radius: 150,
+          origin: 400,
+          num_sides: 30,
+          vx: -100,
+          vy: -120,
+          color: new Matrix(1, 4)
+        },
+        { // SEVEN
+          vertices: [ // based about the origin
+            CG.Vector3(-90,0,1),
+            CG.Vector3(-60,60,1),
+            CG.Vector3(0,90,1),
+            CG.Vector3(60,60,1),
+            CG.Vector3(90,0,1),
+            CG.Vector3(60,-60,1),
+            CG.Vector3(0,-90,1),
+            CG.Vector3(-60,-60,1),
+          ],
+          rotation: new Matrix(3, 3),
+          translation: new Matrix(3, 3), // to be set in drawSlide1
+          velocity: 0,                   // to be set in drawSlide1
+          color: new Matrix(1,4)         // to be set in drawSlide1
+        },
+        { // EIGHT
+          vertices: [ // based about the origin
+            CG.Vector3(-90,0,1),
+            CG.Vector3(-60,60,1),
+            CG.Vector3(0,90,1),
+            CG.Vector3(60,60,1),
+            CG.Vector3(90,0,1),
+            CG.Vector3(60,-60,1),
+            CG.Vector3(0,-90,1),
+            CG.Vector3(-60,-60,1),
+          ],
+          rotation: new Matrix(3, 3),
+          translation: new Matrix(3, 3), // to be set in drawSlide1
+          velocity: 0,                   // to be set in drawSlide1
+          color: new Matrix(1,4)         // to be set in drawSlide1
+        },
+        { // NINE
+          vertices: [],
+          transform: new Matrix(3, 3),
+          radius: 150,
+          origin_x: 600,
+          origin_y: 400,
+          num_sides: 16,
+          growth_rate: 2,
+          scaling_magnitude_x: 6,
+          scaling_magnitude_y: 6,
+          current_scale_x: 1,
+          current_scale_y: 1,
+        },
+        { // TEN
+          vertices: [],
+          transform: new Matrix(3, 3),
+          radius: 125,
+          origin_x: 200,
+          origin_y: 200,
+          num_sides: 16,
+          growth_rate: 4,
+          scaling_magnitude_x: 4,
+          scaling_magnitude_y: 4,
+          current_scale_x: 1,
+          current_scale_y: 1,
+        },
+      ]
     };
 
     // SLIDE 0 STUFF
@@ -122,71 +241,33 @@ class Renderer {
     // so I iterate 30 times here defining a new
     // vertex in each iteration
 
-    for (let i = 0; i < this.models.slide0[0].num_sides; i++) {
-      // calculating the current angle here.
-      // basically just making my way around
-      // the unit circle by iterating from 0 to
-      // 2PI by increments of (2PI / num sides)
-      let currentTheta = (i / this.models.slide0[0].num_sides) * (2 * Math.PI);
+    //--------------------- CIRCLE GENERATOR ---------------------//
+    // a circle with 30 sides looks pretty good, so I iterate 30 times here defining a new vertex in each iteration
+    let model_list = [ this.models.slide0[0], this.models.slide3[0], this.models.slide3[1], this.models.slide3[2], this.models.slide3[3], this.models.slide3[4], this.models.slide3[5] ];
+    for ( let model_idx = 0; model_idx < model_list.length; model_idx++ ) {
+      for (let i = 0; i < model_list[model_idx].num_sides; i++) {
+        // calculating the current angle here. basically just making my way around the unit circle by iterating from 0 to 2PI by increments of (2PI / num sides)
+        let currentTheta = (i / model_list[model_idx].num_sides) * (2 * Math.PI);
 
-      // calculate the new vertex position and
-      // push it to the list of vertices in the
-      // models.slide0[0] object as a Vector3
-      this.models.slide0[0].vertices.push(
-        CG.Vector3(
-          this.models.slide0[0].origin +
-            this.models.slide0[0].radius * Math.cos(currentTheta),
-          this.models.slide0[0].origin +
-            this.models.slide0[0].radius * Math.sin(currentTheta),
-          1
-        )
-      );
+        // calculate the new vertex position and push it to the list of vertices in the models.slide0[0] object as a Vector3
+        model_list[model_idx].vertices.push(
+          CG.Vector3( model_list[model_idx].origin + model_list[model_idx].radius * Math.cos(currentTheta),
+                      model_list[model_idx].origin + model_list[model_idx].radius * Math.sin(currentTheta), 1 ) );
+      }
     }
 
     // SLIDE 2 STUFF
 
-    // MODEL 1
-    // create polygon using same method
-    // as i did for circle (above)
-    for (let i = 0; i < this.models.slide2[0].num_sides; i++) {
-      let currentTheta = (i / this.models.slide2[0].num_sides) * (2 * Math.PI);
-      this.models.slide2[0].vertices.push(
-        CG.Vector3(
-          this.models.slide2[0].origin_x +
-            this.models.slide2[0].radius * Math.cos(currentTheta),
-          this.models.slide2[0].origin_y +
-            this.models.slide2[0].radius * Math.sin(currentTheta),
-          1
-        )
-      );
-    }
-
-    // MODEL 2
-    for (let i = 0; i < this.models.slide2[1].num_sides; i++) {
-      let currentTheta = (i / this.models.slide2[1].num_sides) * (2 * Math.PI);
-      this.models.slide2[1].vertices.push(
-        CG.Vector3(
-          this.models.slide2[1].origin_x +
-            this.models.slide2[1].radius * Math.cos(currentTheta),
-          this.models.slide2[1].origin_y +
-            this.models.slide2[1].radius * Math.sin(currentTheta),
-          1
-        )
-      );
-    }
-
-    // MODEL 3
-    for (let i = 0; i < this.models.slide2[2].num_sides; i++) {
-      let currentTheta = (i / this.models.slide2[2].num_sides) * (2 * Math.PI);
-      this.models.slide2[2].vertices.push(
-        CG.Vector3(
-          this.models.slide2[2].origin_x +
-            this.models.slide2[2].radius * Math.cos(currentTheta),
-          this.models.slide2[2].origin_y +
-            this.models.slide2[2].radius * Math.sin(currentTheta),
-          1
-        )
-      );
+    //--------------------- SLIDE TWO AND THREE POLYGON GENERATION ---------------------//
+    // create polygon using same method as i did for circle (above)
+    model_list = [ this.models.slide2[0], this.models.slide2[1], this.models.slide2[2], this.models.slide3[8], this.models.slide3[9] ];
+    for ( let model_idx = 0; model_idx < model_list.length; model_idx++ ) {
+      for (let i = 0; i < model_list[model_idx].num_sides; i++) {
+        let currentTheta = (i / model_list[model_idx].num_sides) * (2 * Math.PI);
+        model_list[model_idx].vertices.push(
+          CG.Vector3( model_list[model_idx].origin_x + model_list[model_idx].radius * Math.cos(currentTheta),
+                      model_list[model_idx].origin_y + model_list[model_idx].radius * Math.sin(currentTheta), 1 ) );
+      }
     }
   }
 
@@ -194,17 +275,14 @@ class Renderer {
   limitFps(flag) {
     this.limit_fps = flag;
   }
-
   // n:  int
   setFps(n) {
     this.fps = n;
   }
-
   // idx: int
   setSlideIndex(idx) {
     this.slide_idx = idx;
   }
-
   animate(timestamp) {
     // Get time and delta time for animation
     if (this.start_time === null) {
@@ -214,13 +292,10 @@ class Renderer {
     let time = timestamp - this.start_time;
     let delta_time = timestamp - this.prev_time;
     //console.log('animate(): t = ' + time.toFixed(1) + ', dt = ' + delta_time.toFixed(1));
-
     // Update transforms for animation
     this.updateTransforms(time, delta_time);
-
     // Draw slide
     this.drawSlide();
-
     // Invoke call for next frame in animation
     if (this.limit_fps) {
       setTimeout(() => {
@@ -233,7 +308,6 @@ class Renderer {
         this.animate(ts);
       });
     }
-
     // Update previous time to current one for next calculation of delta time
     this.prev_time = timestamp;
   }
@@ -242,11 +316,11 @@ class Renderer {
   updateTransforms(time, delta_time) {
     // TODO: update any transformations needed for animation
 
-    // SLIDE 0
-    
+    // -------------- SLIDE ZERO -------------- //
+
     // all code below just handles bouncing
     // had to do some weird stuff here to
-    // make it work without glitches
+    // make it work without glitchess
 
     // iterate over all vertices
     for (let i = 0; i < this.models.slide0[0].vertices.length; i++) {
@@ -306,11 +380,44 @@ class Renderer {
                        (this.models.slide0[0].vx * delta_time) / 1000,
                        (this.models.slide0[0].vy * delta_time) / 1000 );
 
-    //--------------------- SLIDE ONE ---------------------//
-    let num_models = this.models.slide1.length;
-    for ( let model_idx = 0; model_idx < num_models; model_idx++ ) {
+
+    //--------------------- SLIDE ZERO AND THREE ---------------------//
+    // iterate over all vertices
+    let model_list = [ this.models.slide0[0], this.models.slide3[0], this.models.slide3[1], this.models.slide3[2], this.models.slide3[3], this.models.slide3[4], this.models.slide3[5] ];
+    for ( let model_idx = 0; model_idx < model_list.length; model_idx++ ) {
+      for ( let i = 0; i < model_list[model_idx].vertices.length; i++ ) {
+        // create reference to vector3 at index i
+        let vector = model_list[model_idx].vertices[i];
+
+        // calculate its cartesian coordinates using the homogeneous formula we saw in class
+        let cartesianX = vector.values[0] / vector.values[2];
+        let cartesianY = vector.values[1] / vector.values[2];
+
+        // if the x coord of what should be the next frame's location for this particular vector is at the left of the canvas, change the x velocity of the circle to be positive
+        if (cartesianX + (model_list[model_idx].vx * delta_time / 1000) <= 0) {
+          model_list[model_idx].vx = Math.abs(model_list[model_idx].vx);
+        } else if (cartesianX + (model_list[model_idx].vx * delta_time / 1000) >= this.canvas.width) { // if the y coord of what should be the next frame's location for this particular vector is at the right of the canvas, change the x velocity of the circle to be negative
+          model_list[model_idx].vx = Math.abs(model_list[model_idx].vx) * -1;
+        }
+
+        // if the y coord of what should be the next frame's location for this particular vector is at the bottom of the canvas, change the y velocity of the circle to be positive
+        if (cartesianY + (model_list[model_idx].vy * delta_time / 1000) <= 0) {
+          model_list[model_idx].vy = Math.abs(model_list[model_idx].vy);
+        } else if (cartesianY + (model_list[model_idx].vy * delta_time / 1000) >= this.canvas.height) { // if the y coord of what should be the next frame's location for this particular vector is at the top of the canvas, change the y velocity of the circle to be negative
+          model_list[model_idx].vy = Math.abs(model_list[model_idx].vy) * -1;
+        }
+      }
+      // update the model's transform matrix. this method just overwrites whatever matrix used to be referenced there, with a new one of those homogeneous matrices. keep in mind that delta time is in ms, so I div by 1k here otherwise it would move too fast
+      CG.mat3x3Translate( model_list[model_idx].transform, 
+                         (model_list[model_idx].vx * delta_time) / 1000, 
+                         (model_list[model_idx].vy * delta_time) / 1000 );
+    }
+
+    //--------------------- SLIDE ONE AND THREE ---------------------//
+    model_list = [ this.models.slide1[0], this.models.slide1[1], this.models.slide1[2], this.models.slide3[6], this.models.slide3[7] ];
+    for ( let model_idx = 0; model_idx < model_list.length; model_idx++ ) {
         // make referencing each model easier
-        let current_model = this.models.slide1[model_idx];
+        let current_model = model_list[model_idx];
 
         let theta = ( current_model.velocity / 1000.0 ) * time; // time is in milliseconds
         if ( theta >= (2*Math.PI) ) {
@@ -319,11 +426,11 @@ class Renderer {
         CG.mat3x3Rotate( current_model.rotation, theta );
     }
 
-    // SLIDE 2
-    for (let i = 0; i < this.models.slide2.length; i++) {
-      // create reference to current model cuz I can
-      // access its properties easier this way
-      let model = this.models.slide2[i];
+    //--------------------- SLIDE TWO AND THREE ---------------------//
+    model_list = [ this.models.slide2[0], this.models.slide2[1], this.models.slide2[2], this.models.slide3[8], this.models.slide3[9] ];
+    for ( let model_idx = 0; model_idx < model_list.length; model_idx++ ) {
+      // make referencing each model easier
+      let model = model_list[model_idx];
 
       // calculate how much time has passed (in seconds)
       let timePassed = time / 1000;
@@ -346,7 +453,7 @@ class Renderer {
       // already happened by this point
       let scalingAlreadyCompleted =
         (timePassed % model.growth_rate) / model.growth_rate;
-
+        
       // create 2 empty variables which will hold the newly
       // calculated scale values in x and y direction
       let newScaleX;
@@ -381,6 +488,7 @@ class Renderer {
 
       // create matrix transformation for translating
       // the polygon back to the origin
+      // create matrix transformation for translating the polygon back to the origin
       let translateToOrigin = new Matrix(3, 3);
       CG.mat3x3Translate(
         translateToOrigin,
@@ -388,11 +496,7 @@ class Renderer {
         -1 * model.origin_y
       );
 
-      // create matrix transform for scaling
-      // note that I calculate the scale factor
-      // here by taking the ratio of the desired
-      // scale amount in either direction versus
-      // the current scale amount in that direction.
+      // create matrix transform for scaling note that I calculate the scale factor here by taking the ratio of the desired scale amount in either direction versus the current scale amount in that direction.
       let scaleAtOrigin = new Matrix(3, 3);
       CG.mat3x3Scale(
         scaleAtOrigin,
@@ -400,22 +504,15 @@ class Renderer {
         newScaleY / model.current_scale_y
       );
 
-      // we still have to translate the polygon
-      // back to its original spot after we
-      // scale, and that's what this matrix is for
+      // we still have to translate the polygon back to its original spot after we scale, and that's what this matrix is for
       let translateBack = new Matrix(3, 3);
       CG.mat3x3Translate(translateBack, model.origin_x, model.origin_y);
 
       // combine the transformations into a single matrix
-      let combinedMatrix = Matrix.multiply([
-        translateBack,
-        scaleAtOrigin,
-        translateToOrigin,
-      ]);
+      let combinedMatrix = Matrix.multiply( [translateBack, scaleAtOrigin, translateToOrigin] );
 
       // update our model's transform matrix
       model.transform = combinedMatrix;
-
       // update current scales for next frame
       model.current_scale_x = newScaleX;
       model.current_scale_y = newScaleY;
@@ -445,8 +542,7 @@ class Renderer {
   //
   drawSlide0() {
     // define the color
-    let purp = [150, 100, 230, 255];
-
+    let purp = [120, 80, 250, 255];
     // draw the circle
     this.drawConvexPolygon(this.models.slide0[0].vertices, purp);
 
@@ -454,6 +550,7 @@ class Renderer {
     for (let i = 0; i < this.models.slide0[0].vertices.length; i++) {
         // apply the translation tranformation by
         // multiplying the Vector3 w/ the transform
+        // apply the translation tranformation by multiplying the Vector3 w/ the transform
         this.models.slide0[0].vertices[i] = Matrix.multiply( [this.models.slide0[0].transform, this.models.slide0[0].vertices[i]] );
     }
   }
@@ -463,12 +560,10 @@ class Renderer {
     let velocity_arr = [ (Math.PI / 3), (-1 * Math.PI), (-1 * Math.PI / 12) ];
     let color_arr    = [ [209, 164, 245, 255], [214, 11, 177, 255], [232, 63, 209, 255] ]; // purple, pink, light pink
     let location_arr = [ [400, 300], [400, 300], [400, 300] ];
-
     let num_models = this.models.slide1.length;
     for ( let model_idx = 0; model_idx < num_models; model_idx++ ) {
         // make referencing each model easier
         let current_model = this.models.slide1[model_idx];
-
         // initialize custom parameters velocity, color, and location on slide (translate)
         current_model.velocity = velocity_arr[model_idx];
         current_model.color = color_arr[model_idx];
@@ -480,7 +575,6 @@ class Renderer {
         for ( let edge = 0; edge < num_edges; edge++ ) {
           let current_vertice = current_model.vertices[edge];
           let result = Matrix.multiply( [ current_model.translation, current_model.rotation, current_vertice ] );
-
           updated_vertices.push(result);
         }
         this.drawConvexPolygon(updated_vertices, current_model.color);
@@ -499,6 +593,7 @@ class Renderer {
         this.models.slide2[i].vertices,
         this.models.slide2[i].color
       );
+      this.drawConvexPolygon( this.models.slide2[i].vertices, this.models.slide2[i].color );
 
       // apply the scaling transformation to the polygon
       for (let j = 0; j < this.models.slide2[i].vertices.length; j++) {
@@ -506,6 +601,7 @@ class Renderer {
           this.models.slide2[i].transform,
           this.models.slide2[i].vertices[j],
         ]);
+        this.models.slide2[i].vertices[j] = Matrix.multiply( [this.models.slide2[i].transform, this.models.slide2[i].vertices[j],] );
       }
     }
   }
@@ -514,6 +610,67 @@ class Renderer {
     // TODO: get creative!
     //   - animation should involve all three basic transformation types
     //     (translation, scaling, and rotation)
+    //   - animation should involve all three basic transformation types (translation, scaling, and rotation)
+    // TRANSLATION
+    let color_arr = [ [147, 235, 129, 255], [80, 181, 60, 255], [90, 240, 60, 255], [44, 232, 7, 255], [34, 166, 8, 255], [169, 250, 152, 255] ];
+
+    let model_list = [ this.models.slide3[0], this.models.slide3[1], this.models.slide3[2], this.models.slide3[3], this.models.slide3[4], this.models.slide3[5] ];
+    for ( let model_idx = 0; model_idx < model_list.length; model_idx++ ) {
+        // make referencing each model easier
+        let current_model = this.models.slide3[model_idx];
+
+        // draw the circle
+        this.drawConvexPolygon(current_model.vertices, color_arr[model_idx]);
+
+        // iterate over every vertex in the circle
+        for (let i = 0; i < current_model.vertices.length; i++) {
+          // apply the translation tranformation by multiplying the Vector3 w/ the transform
+          current_model.vertices[i] = Matrix.multiply( [current_model.transform, current_model.vertices[i]] );
+        }
+    }
+
+    // DILATION
+    color_arr = [ [199, 29, 242, 255], [242, 29, 192, 255] ]; // purple, pink
+    model_list = [ this.models.slide3[8], this.models.slide3[9] ];
+    for ( let model_idx = 0; model_idx < model_list.length; model_idx++ ) {
+      // make referencing each model easier
+      let current_model = model_list[model_idx];
+
+      current_model.color = color_arr[model_idx];
+
+      // apply the scaling transformation to the polygon
+      for (let j = 0; j < current_model.vertices.length; j++) {
+        current_model.vertices[j] = Matrix.multiply( [current_model.transform, current_model.vertices[j],] );
+      }
+      this.drawConvexPolygon( current_model.vertices, current_model.color );
+    }
+
+    // ROTATION
+    let velocity_arr = [ (Math.PI / 2), (-1 * Math.PI / 5) ];
+    color_arr    = [ [242, 242, 29, 255], [242, 242, 29, 255] ]; // yellow, yellow
+    let location_arr = [ [600, 400], [200, 200] ];
+
+    model_list = [ this.models.slide3[6], this.models.slide3[7] ];
+    for ( let model_idx = 0; model_idx < model_list.length; model_idx++ ) {
+        // make referencing each model easier
+        let current_model = model_list[model_idx];
+
+        // initialize custom parameters velocity, color, and location on slide (translate) 
+        current_model.velocity = velocity_arr[model_idx];
+        current_model.color = color_arr[model_idx];
+        CG.mat3x3Translate( current_model.translation, location_arr[model_idx][0], location_arr[model_idx][1] );
+
+        // perform rotation, then translation from model at origin
+        let updated_vertices = [];
+        let num_edges = current_model.vertices.length;
+        for ( let edge = 0; edge < num_edges; edge++ ) {
+          let current_vertice = current_model.vertices[edge];
+          let result = Matrix.multiply( [ current_model.translation, current_model.rotation, current_vertice ] );
+
+          updated_vertices.push(result);
+        }
+        this.drawConvexPolygon(updated_vertices, current_model.color);
+    }
   }
 
   // vertex_list:  array of object [Matrix(3, 1), Matrix(3, 1), ..., Matrix(3, 1)]
@@ -542,5 +699,4 @@ class Renderer {
     this.ctx.fill();
   }
 }
-
 export { Renderer };
